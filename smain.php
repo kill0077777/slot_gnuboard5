@@ -9,7 +9,7 @@ if (!$is_member) {
 $datadb = $member;
 
 // 출력할 데이터 안전 처리
-$gamepoint_display = htmlspecialchars(number_format($datadb['gamepoint']));
+$gamepoint_display = htmlspecialchars(number_format((int)$datadb['mb_point']), ENT_QUOTES, 'UTF-8');
 ?>
 
 <html>

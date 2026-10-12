@@ -32,14 +32,14 @@ $h2 = ($_GET["h2"] === "true");
 $h3 = ($_GET["h3"] === "true");
 
 // DB 업데이트 쿼리 예시 (mb_id는 $member에서 가져오므로 안전)
-sql_query("update {$g5["member_table"]} set gamepoint = gamepoint - '{$betmoney}' where mb_id = '{$member["mb_id"]}'");
+sql_query("update {$g5["member_table"]} set mb_point = mb_point - '{$betmoney}' where mb_id = '{$member["mb_id"]}'");
 ```
 
 ### 3.2. XSS (Cross-Site Scripting)
 
 **취약점**: `smain.php` 및 `sub.php`에서 사용자 입력 또는 데이터베이스에서 가져온 데이터를 HTML에 출력할 때, 적절한 이스케이프 처리 없이 직접 출력하는 부분이 있을 수 있습니다. 이는 공격자가 악성 스크립트를 삽입하여 사용자 세션을 탈취하거나 웹사이트 변조를 시도할 수 있는 XSS 취약점으로 이어질 수 있습니다.
 
-- `smain.php`의 `moneytxt` 등 `value` 속성에 출력되는 `$datadb['gamepoint']`와 같은 값은 현재 `number_format()`으로 처리되어 안전해 보이지만, 다른 잠재적인 출력 지점에서 주의가 필요합니다.
+- `smain.php`의 `moneytxt` 등 `value` 속성에 출력되는 `$datadb['mb_point']`와 같은 값은 현재 `number_format()`으로 처리되어 안전해 보이지만, 다른 잠재적인 출력 지점에서 주의가 필요합니다.
 - `sub.php`에서 `echo "<script>..."` 형태로 클라이언트 스크립트를 동적으로 생성하는 부분이 많습니다. 이 스크립트 내부에 사용자 입력값이 포함될 경우 XSS 취약점이 발생할 수 있습니다.
 
 **개선 방안**:
@@ -50,7 +50,7 @@ sql_query("update {$g5["member_table"]} set gamepoint = gamepoint - '{$betmoney}
 ```php
 // 클라이언트 스크립트 실행 부분
 echo "<script>";
-echo "top.document.getElementById(\'moneytxt\').value = \'" . htmlspecialchars(number_format($member["gamepoint"] + $total_points)) . "\';";
+echo "top.document.getElementById(\'moneytxt\').value = \'" . htmlspecialchars(number_format($member["mb_point"] + $total_points)) . "\';";
 echo "top.document.getElementById(\'bar\').value = \'" . addslashes(htmlspecialchars($gamemsg)) . "\';"; // JS 내부 문자열 처리
 // ...
 echo "</script>";

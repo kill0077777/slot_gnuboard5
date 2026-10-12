@@ -41,10 +41,10 @@ if ($holds < 0 || $holds > 3) {
 #### 1.3 SQL 쿼리 안전 처리 (sub.php)
 ```php
 // 변경 전
-sql_query("update {$g5['member_table']} set gamepoint = gamepoint - $betmoney where mb_id = '{$member['mb_id']}'");
+sql_query("update {$g5['member_table']} set mb_point = mb_point - $betmoney where mb_id = '{$member['mb_id']}'");
 
 // 변경 후 (정수 타입 캐스팅)
-sql_query("update {$g5['member_table']} set gamepoint = gamepoint - {$betmoney} where mb_id = '{$member['mb_id']}'");
+sql_query("update {$g5['member_table']} set mb_point = mb_point - {$betmoney} where mb_id = '{$member['mb_id']}'");
 ```
 
 #### 1.4 박스 값 정수 변환 (sub.php)
@@ -76,12 +76,12 @@ $sql = " update {$g5['member_table']}
 #### 2.1 HTML 출력값 이스케이프 (smain.php)
 ```php
 // 변경 전
-<input type="text" id="moneytxt" value="<?php echo number_format($datadb['gamepoint']); ?>" readonly>
+<input type="text" id="moneytxt" value="<?php echo number_format($datadb['mb_point']); ?>" readonly>
 
 // 변경 후
-$gamepoint_display = htmlspecialchars(number_format($datadb['gamepoint']));
+$mb_point_display = htmlspecialchars(number_format($datadb['mb_point']));
 ?>
-<input type="text" id="moneytxt" value="<?php echo $gamepoint_display; ?>" readonly>
+<input type="text" id="moneytxt" value="<?php echo $mb_point_display; ?>" readonly>
 ```
 
 #### 2.2 JavaScript 내부 문자열 이스케이프 (sub.php)
@@ -232,7 +232,7 @@ if ($holds < 0 || $holds > 3) {
 }
 
 // 포인트 충분성 재검증
-if ($sdata['gamepoint'] >= $betmoney && $betmoney >= 20) {
+if ($sdata['mb_point'] >= $betmoney && $betmoney >= 20) {
     // 게임 진행
 }
 ```

@@ -1,192 +1,104 @@
+# 영카트5 슬롯머신 모듈
 
+기존 제로보드 기반 슬롯머신을 **그누보드5/영카트5** 회원·포인트 구조에 맞춰 포팅한 모듈입니다. 영카트5는 그누보드5의 회원 테이블과 포인트 필드를 사용하므로, 게임 포인트를 별도 `gamepoint` 컬럼으로 만들지 않고 기본 `mb_point`에 통합합니다.
 
-## 최신 변경 기록
+## 주요 기능
 
-- `prize_board.php`: 시상 내역 조회 게시판 추가
-- `smain.php`: 게임 화면에서 시상 게시판으로 이동하는 링크 추가
-- `README_GB5.md`: 변경 내역을 한글로 정리
+- 영카트5 회원 인증 및 `mb_id` 기반 회원 조회
+- `mb_point` 통합 포인트 결제·당첨 처리
+- 하루 1회 50,000포인트 무료 충전
+- 회원 간 포인트 선물
+- 전체 랭킹 및 시상 게시판
+- 포인트 변동 이력 기록
+- 관리자 포인트 충전·차감
+- 서버 측 입력 검증, CSRF 토큰, 출력 이스케이프, `random_int()` 기반 난수 처리
 
-**한글 커밋 제목:** 시상 게시판 및 게임 화면 링크 추가
-**변경일:** 2026년 8월 13일
-# 그누보드5 슬롯머신 모듈 설치 가이드
+## 파일 구성
 
-## 개요
-
-이 모듈은 기존의 제로보드 기반 슬롯머신 게임을 **그누보드5(GnuBoard 5)** 환경에 맞게 포팅한 것입니다.
-
-## 주요 변경사항
-
-### 1. 데이터베이스 호환성
-- **기존**: `zetyx_member_table` → **변경**: `g5_member` 테이블 사용
-- **기존**: `user_id` 필드 → **변경**: `mb_id` 필드 사용
-- 모든 SQL 쿼리가 그누보드5의 `sql_query()` 함수를 사용하도록 변경
-
-### 2. 파일 구조
-```
-slot_project/
-├── zbpath.php          # 그누보드5 _common.php 포함
-├── smain.php           # 메인 UI (HTML5 기반으로 현대화)
-├── sub.php             # 게임 로직 및 결과 처리
-├── normal.php          # 일반 모드 난수 생성
-├── bar.php             # 바 보너스 모드
-├── bell.php            # 벨 보너스 모드
-├── gb5_install.php     # 테이블 설치 스크립트
-├── images/             # 게임 이미지 (GIF 파일)
-└── swf/                # Flash 사운드 효과 (선택사항)
-```
-
-### 3. 주요 수정 사항
-
-#### zbpath.php
-```php
-<?php
-if (!defined('_GNUBOARD_')) {
-    include_once('./_common.php');
-}
-?>
-```
-- 그누보드5의 `_common.php`를 포함하여 전역 변수 및 함수 사용 가능
-
-#### smain.php
-- **Flash 제거**: 레거시 Flash 객체 대신 HTML5 기반 UI로 변경
-- **회원 정보**: `$member` 변수로 그누보드5 회원 정보 자동 로드
-- **현대화**: 인라인 스타일 대신 CSS 클래스 사용
-- **반응형**: 모바일 환경 고려한 레이아웃
-
-#### sub.php
-- **DB 쿼리**: 모든 `mysql_query()` → `sql_query()` 변경
-- **필드명**: `user_id` → `mb_id` 변경
-- **테이블명**: `zetyx_member_table` → `{$g5['member_table']}` 변경
-- **에러 처리**: 그누보드5의 에러 핸들링 방식 적용
-
-#### normal.php, bar.php, bell.php
-- PHP 문법 현대화 (짧은 태그 `<?` → `<?php`)
-- 그누보드5 상수 정의 확인 추가
-- DB 쿼리 함수 통일
+| 파일 | 설명 |
+|---|---|
+| `zbpath.php` | 영카트/그누보드 `_common.php` 로더 및 모듈 상수 |
+| `smain.php` | 슬롯머신 화면 |
+| `sub.php` | 게임 결과 계산 및 포인트 반영 |
+| `normal.php`, `bar.php`, `bell.php` | 게임 모드별 결과 생성 |
+| `rank.php` | 전체 랭킹 |
+| `prize_board.php` | 시상·명예의 전당 |
+| `daily_charge.php` | 일일 무료 충전 |
+| `gift.php` | 회원 간 포인트 선물 |
+| `admin_point.php` | 관리자 포인트 관리 |
+| `gb5_install.php` | 관리자용 SQL 실행 화면만 담당 |
+| `youngcart_install.sql` | 영카트5 설치 스키마 |
+| `youngcart_uninstall.sql` | 영카트5 제거 스키마 |
+| `install.sql` | 설치 SQL 호환 파일 |
 
 ## 설치 방법
 
-### 1단계: 파일 업로드
-그누보드5 설치 디렉토리 내 모듈 디렉토리에 파일을 업로드합니다.
-```
-/그누보드5설치경로/modules/slot/
-```
+### 1. 업로드
 
-### 2단계: 데이터베이스 테이블 수정
-관리자 권한으로 `gb5_install.php`에 접속하여 테이블 컬럼을 추가합니다.
+영카트5 설치 경로 아래 모듈 디렉터리에 파일을 업로드합니다.
 
-**필요한 컬럼:**
-- `bar` (INT, 기본값: 0)
-- `bell` (INT, 기본값: 5)
-- `bellbonus` (INT, 기본값: 0)
-- `allseven` (INT, 기본값: 0)
-- `allitemh` (INT, 기본값: 0)
-- `alliteml` (INT, 기본값: 0)
-- `crossseven` (INT, 기본값: 0)
-- `rankpoint` (INT, 기본값: 0)
-- `box1~box9` (INT, 기본값: 0)
-- `gamepoint` (INT, 기본값: 10000)
-
-또는 직접 SQL 실행:
-```sql
-ALTER TABLE g5_member 
-ADD `bar` INT(2) DEFAULT '0' NOT NULL,
-ADD `bell` INT(2) DEFAULT '5' NOT NULL,
-ADD `bellbonus` INT(2) DEFAULT '0' NOT NULL,
-ADD `allseven` INT(4) DEFAULT '0' NOT NULL,
-ADD `allitemh` INT(4) DEFAULT '0' NOT NULL,
-ADD `alliteml` INT(4) DEFAULT '0' NOT NULL,
-ADD `crossseven` INT(4) DEFAULT '0' NOT NULL,
-ADD `rankpoint` INT(6) DEFAULT '0' NOT NULL,
-ADD `box1` INT(1) NOT NULL,
-ADD `box2` INT(1) NOT NULL,
-ADD `box3` INT(1) NOT NULL,
-ADD `box4` INT(1) NOT NULL,
-ADD `box5` INT(1) NOT NULL,
-ADD `box6` INT(1) NOT NULL,
-ADD `box7` INT(1) NOT NULL,
-ADD `box8` INT(1) NOT NULL,
-ADD `box9` INT(1) NOT NULL,
-ADD `gamepoint` INT DEFAULT '10000' NOT NULL;
+```text
+/영카트설치경로/modules/slot/
 ```
 
-### 3단계: 접근 권한 설정
-그누보드5 관리자 페이지에서 모듈 접근 권한을 설정합니다.
+`zbpath.php`의 `_common.php` 상대 경로가 실제 디렉터리 구조와 맞는지 확인합니다. 모듈을 별도 하위 디렉터리에 설치하면 `include_once()` 경로를 그 위치에 맞게 조정해야 합니다.
 
-## 사용 방법
+### 2. 데이터베이스 설치
 
-### 회원 접근
-로그인한 회원만 슬롯 게임에 접근할 수 있습니다.
+방법은 두 가지입니다.
 
-**접근 URL:**
+1. 관리자 계정으로 `gb5_install.php`에 접속해 **모듈 설치**를 실행합니다. 이 화면은 `$g5['member_table']`과 `$g5['table_prefix']`를 자동으로 사용합니다.
+2. SQL 관리 도구에서 `youngcart_install.sql`을 실행합니다. 이 경우 파일의 `{{MEMBER_TABLE}}`을 예를 들어 `g5_member`로, `{{TABLE_PREFIX}}`를 `g5_`로 치환한 뒤 실행합니다.
+
+설치 SQL은 다음 회원 컬럼을 추가합니다.
+
+```text
+bar, bell, bellbonus, allseven, allitemh, alliteml,
+crossseven, rankpoint, box1~box9, last_daily_charge
 ```
+
+또한 `${table_prefix}slot_point_log` 포인트 이력 테이블을 생성합니다. 기존 영카트의 `mb_point` 컬럼은 그대로 사용하며, 별도 `gamepoint` 컬럼은 만들지 않습니다.
+
+### 3. 제거
+
+제거 전 데이터베이스 백업을 권장합니다. 관리자 화면의 **모듈 제거**를 사용하거나 `youngcart_uninstall.sql`의 토큰을 치환해 실행합니다. 제거 SQL은 슬롯 관련 회원 컬럼과 포인트 기록 테이블을 삭제합니다.
+
+## 접근 주소 예시
+
+```text
 /modules/slot/smain.php
+/modules/slot/rank.php
+/modules/slot/gift.php
+/modules/slot/daily_charge.php
+/modules/slot/prize_board.php
 ```
 
-### 게임 방법
-1. **배팅**: UP/CLEAR 버튼으로 배팅 금액 설정 (최대 300)
-2. **홀드**: HOLD 버튼으로 릴 고정 (최대 3개)
-3. **스핀**: SPIN 버튼으로 게임 시작
-4. **자동 모드**: AUTO 버튼으로 자동 반복 게임
-5. **사운드**: SOUND 버튼으로 음성 효과 제어
+실제 URL은 영카트 설치 경로와 모듈 디렉터리에 따라 달라집니다.
 
-## 게임 규칙
+## 포인트 동작
 
-### 시상 등급
-| 조합 | 배수 | 설명 |
-|------|------|------|
-| 체리 3개 | 3배 | 기본 시상 |
-| 오렌지 3개 | 4배 | - |
-| 망고 3개 | 5배 | - |
-| 원바 3개 | 2.5배 | 바 보너스 +3 |
-| 세븐 3개 | 20배 | 특수 시상 |
-| 올과일 | 15배 | 9칸 모두 과일 |
-| 올잡바 | 60배 | 9칸 모두 바 |
-| 올잡종 | 200배 | 9칸 모두 종 |
+- 배팅 시 `g5_member.mb_point`에서 차감합니다.
+- 당첨 시 `g5_member.mb_point`에 지급합니다.
+- 일일 무료 충전은 회원별 `last_daily_charge`를 기준으로 하루 한 번만 처리합니다.
+- 관리자 충전·차감 및 선물 내역은 `slot_point_log`에 기록합니다.
+- 포인트 기록 테이블명은 하드코딩하지 않고 `$g5['table_prefix'] . 'slot_point_log'`로 계산합니다.
 
-### 보너스 모드
-- **바 모드**: 바 서비스 포인트 소비 시 활성화
-- **벨 모드**: 벨 보너스 포인트 소비 시 활성화
-- **일반 모드**: 게임 포인트로 배팅
+## 영카트 호환 주의사항
 
-## 문제 해결
+- 영카트5/그누보드5의 `$g5`, `$member`, `$is_member`, `$is_admin`, `sql_query()`가 로드되는 환경에서 실행해야 합니다.
+- 회원 테이블 접두사를 `g5_`로 가정하지 않습니다. 설치 SQL을 직접 실행할 때만 토큰을 실제 값으로 바꿉니다.
+- 영카트 기본 포인트 정책과 충돌할 수 있으므로, 운영 전 포인트 한도·환불·선물 정책을 확인하십시오.
+- `youngcart_uninstall.sql`은 데이터 손실을 일으킬 수 있으므로 운영 DB에서 신중히 실행하십시오.
 
-### 1. 테이블 컬럼 오류
-**증상**: "Unknown column" 에러
-**해결**: `gb5_install.php` 실행하여 테이블 컬럼 추가
+## 보안 점검 항목
 
-### 2. 회원 정보 로드 실패
-**증상**: 게임 시작 불가
-**해결**: `zbpath.php`에서 `_common.php` 경로 확인
+- 설치 화면은 관리자만 접근할 수 있습니다.
+- 설치·제거 POST에는 세션 기반 CSRF 토큰이 필요합니다.
+- SQL 스키마는 PHP 화면과 분리되어 변경 이력을 관리할 수 있습니다.
+- 게임 입력값은 서버에서 정수·범위를 재검증합니다.
+- HTML 출력값은 `htmlspecialchars()`로 이스케이프합니다.
+- 운영 서버에서는 설치가 끝난 뒤 `gb5_install.php` 접근을 제한하거나 제거하는 것을 권장합니다.
 
-### 3. 이미지 또는 SWF 파일 미로드
-**증상**: 게임 화면이 비어있음
-**해결**: `images/` 및 `swf/` 디렉토리 권한 확인 (755)
+## 라이선스
 
-## 보안 주의사항
-
-1. **관리자 권한 체크**: 모든 설치 스크립트는 관리자 권한 확인
-2. **SQL 인젝션 방지**: 모든 쿼리에서 `sql_query()` 함수 사용
-3. **회원 인증**: 로그인하지 않은 사용자 접근 차단
-4. **파일 권한**: 이미지 및 스크립트 파일 권한 적절히 설정
-
-## 추가 기능 개발
-
-### 랭킹 시스템
-`rankpoint` 필드를 활용하여 상위 플레이어 랭킹 표시 가능
-
-### 통계 페이지
-`allseven`, `allitemh`, `alliteml`, `crossseven` 필드로 개인 통계 표시
-
-### 포인트 환전
-`gamepoint`를 이용한 포인트 환전 시스템 구축 가능
-
-## 라이선스 및 지원
-
-이 모듈은 기존 인디슬롯 v3.0을 그누보드5에 맞게 포팅한 것입니다.
-기술 지원이 필요하신 경우 그누보드 공식 커뮤니티를 참고하세요.
-
----
-
-**마지막 수정**: 2026년 7월 4일
-**버전**: GnuBoard5 호환 v1.0
+이 모듈은 기존 인디슬롯 v3.0을 그누보드5/영카트5 구조에 맞춰 수정한 프로젝트입니다. 원본 라이선스와 영카트 설치 환경의 라이선스 조건을 함께 확인한 뒤 배포하십시오.

@@ -36,16 +36,16 @@ if ($betmoney < 20 || $betmoney > 300) {
 **예시 (smain.php):**
 ```php
 // 출력할 데이터 안전 처리
-$gamepoint_display = htmlspecialchars(number_format($datadb['gamepoint']));
+$mb_point_display = htmlspecialchars(number_format($datadb['mb_point']));
 ?>
 <!-- HTML에 출력 -->
-Point: <input type="text" id="moneytxt" value="<?php echo $gamepoint_display; ?>" readonly>
+Point: <input type="text" id="moneytxt" value="<?php echo $mb_point_display; ?>" readonly>
 ```
 
 **예시 (sub.php):**
 ```php
 // JavaScript 내부 문자열 처리
-$game_point_display = htmlspecialchars(number_format($member['gamepoint'] + $total_points));
+$game_point_display = htmlspecialchars(number_format($member['mb_point'] + $total_points));
 $gamemsg_display = addslashes(htmlspecialchars($gamemsg));
 
 echo "top.document.getElementById('moneytxt').value = '" . $game_point_display . "';";

@@ -7,7 +7,7 @@ $sort_type = isset($_GET['sort']) ? $_GET['sort'] : 'rankpoint';
 $limit = 20; // 페이지당 표시 개수
 
 // 정렬 방식 검증
-$allowed_sorts = array('rankpoint', 'gamepoint', 'allseven', 'allitemh');
+$allowed_sorts = array('rankpoint', 'point', 'allseven', 'allitemh');
 if (!in_array($sort_type, $allowed_sorts)) {
     $sort_type = 'rankpoint';
 }
@@ -16,11 +16,11 @@ if (!in_array($sort_type, $allowed_sorts)) {
 $order_by = '';
 switch($sort_type) {
     case 'rankpoint':
-        $order_by = 'rankpoint DESC, gamepoint DESC';
+        $order_by = 'rankpoint DESC, mb_point DESC';
         $sort_title = '랭킹 포인트';
         break;
-    case 'gamepoint':
-        $order_by = 'gamepoint DESC, rankpoint DESC';
+    case 'point':
+        $order_by = 'mb_point DESC, rankpoint DESC';
         $sort_title = '게임 포인트';
         break;
     case 'allseven':
@@ -32,7 +32,7 @@ switch($sort_type) {
         $sort_title = '올 과일(상) 횟수';
         break;
     default:
-        $order_by = 'rankpoint DESC, gamepoint DESC';
+        $order_by = 'rankpoint DESC, mb_point DESC';
         $sort_title = '랭킹 포인트';
 }
 
@@ -40,7 +40,7 @@ switch($sort_type) {
 if ($page < 1) $page = 1;
 
 // ===== 전체 회원 수 조회 =====
-$sql = "SELECT COUNT(*) as cnt FROM {$g5['member_table']} WHERE rankpoint > 0 OR gamepoint > 0";
+$sql = "SELECT COUNT(*) as cnt FROM {$g5['member_table']} WHERE rankpoint > 0 OR mb_point > 0";
 $result = sql_fetch($sql);
 $total_count = $result['cnt'];
 $total_pages = ceil($total_count / $limit);
@@ -55,7 +55,7 @@ $sql = "SELECT
             mb_id,
             mb_name,
             mb_nick,
-            gamepoint,
+            mb_point AS point,
             rankpoint,
             allseven,
             allitemh,
@@ -65,7 +65,7 @@ $sql = "SELECT
             bell,
             bellbonus
          FROM {$g5['member_table']}
-         WHERE rankpoint > 0 OR gamepoint > 0
+         WHERE rankpoint > 0 OR mb_point > 0
          ORDER BY {$order_by}
          LIMIT {$offset}, {$limit}";
 
@@ -88,11 +88,11 @@ if ($is_member) {
                 @rank := @rank + 1 as rank,
                 mb_id,
                 mb_nick,
-                gamepoint,
+                mb_point AS point,
                 rankpoint
             FROM (SELECT @rank := 0) as init,
                  {$g5['member_table']}
-            WHERE rankpoint > 0 OR gamepoint > 0
+            WHERE rankpoint > 0 OR mb_point > 0
             ORDER BY {$order_by}";
     
     $result = sql_query($sql);
@@ -406,7 +406,7 @@ if ($is_member) {
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">게임 포인트</div>
-                        <div class="stat-value"><?php echo number_format($my_rank_info['gamepoint']); ?></div>
+                        <div class="stat-value"><?php echo number_format($my_rank_info['point']); ?></div>
                     </div>
                 </div>
             </div>
@@ -423,7 +423,7 @@ if ($is_member) {
                 <a href="?page=1&sort=rankpoint" class="sort-btn <?php echo $sort_type === 'rankpoint' ? 'active' : ''; ?>">
                     랭킹 포인트 순
                 </a>
-                <a href="?page=1&sort=gamepoint" class="sort-btn <?php echo $sort_type === 'gamepoint' ? 'active' : ''; ?>">
+                <a href="?page=1&sort=point" class="sort-btn <?php echo $sort_type === 'point' ? 'active' : ''; ?>">
                     게임 포인트 순
                 </a>
                 <a href="?page=1&sort=allseven" class="sort-btn <?php echo $sort_type === 'allseven' ? 'active' : ''; ?>">
@@ -480,7 +480,7 @@ if ($is_member) {
                                     <?php echo number_format($item['rankpoint']); ?>
                                 </span>
                             </td>
-                            <td><?php echo number_format($item['gamepoint']); ?></td>
+                            <td><?php echo number_format($item['point']); ?></td>
                             <td><?php echo number_format($item['allseven']); ?></td>
                             <td><?php echo number_format($item['allitemh']); ?></td>
                             <td><?php echo number_format($item['alliteml']); ?></td>
