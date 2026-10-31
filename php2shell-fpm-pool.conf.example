@@ -1,0 +1,18 @@
+; PHP2Shell 임시 완화 및 요청 제한 예시
+; 완전한 해결은 PHP 보안 수정 버전으로 업데이트하는 것입니다.
+; 실제 FPM 풀 파일에 적용한 뒤 해당 PHP-FPM 서비스를 재시작하십시오.
+
+; CVE-2026-109619 확인된 세션 업로드 진행 경로 차단
+php_admin_flag[session.upload_progress.enabled] = no
+
+; 요청 크기 제한: 애플리케이션에 맞춰 조정
+php_admin_value[post_max_size] = 8M
+php_admin_value[upload_max_filesize] = 4M
+php_admin_value[max_file_uploads] = 5
+php_admin_value[max_input_nesting_level] = 32
+
+; PHP 8.5에서만 사용할 수 있습니다. 지원하지 않는 버전에는 넣지 마십시오.
+; php_admin_flag[fatal_error_backtraces] = no
+
+; 선택적 워커 재활용: 성능 영향 검토 후 적용
+; pm.max_requests = 1000
